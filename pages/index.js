@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import Layout from "../components/layout"
+import Layout from '../components/layout'
 
 const Index = () => {
     return (
@@ -8,7 +8,7 @@ const Index = () => {
             <div className="hero">
                 <Image src="/images/index-hero.jpg" alt="hero" fill quality={90} priority />
                 <div className="textContainer">
-                    <h1>I'm Abe Hiroki!</h1>
+                    <h1>I am Abe Hiroki!</h1>
                     <h3>JavaScript Developer</h3>
                 </div>
             </div>
