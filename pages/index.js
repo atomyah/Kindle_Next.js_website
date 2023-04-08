@@ -8,7 +8,7 @@ const Index = () => {
             <div className="hero">
                 <Image src="/images/index-hero.jpg" alt="hero" fill quality={90} priority />
                 <div className="textContainer">
-                    <h1>I am Abe Hiroki!</h1>
+                    <h1>ヤハラです</h1>
                     <h3>JavaScript Developer</h3>
                 </div>
             </div>
