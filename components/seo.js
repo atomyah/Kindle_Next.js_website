@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 
 const Seo = (props) => {
     const router = useRouter()
-    const baseUrl = "http://localhost:3000"
+    const baseUrl = "https://kindle-next-js-website-9geo.vercel.app"
     const currentUrl = baseUrl + router.pathname
     const defaultImage = `${baseUrl}/images/social-card.png`
     return (
