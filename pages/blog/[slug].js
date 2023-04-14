@@ -1,12 +1,16 @@
-import matter from "gray-matter"
+//import matter from "gray-matter"
+import { getAllBlogs, getSingleBlog } from "../../utils/mdQueries"
+import PrevNext from "../../components/prevNext"
 import ReactMarkdown from 'react-markdown'
 import Image from 'next/image'
 import Layout from "../../components/layout"
+import Seo from "../../components/seo"
 
 const SingleBlog = (props) => {
     //console.log(props) //出力=> {frontmatter: {id: '2',title: 'ふたつ目の記事',data: '2021--03-02',…},markdownBody: '\r\nこれはふたつ目の記事です。'}
     return (
         <Layout>
+            <Seo title={props.frontmatter.title} description={props.frontmatter.excerpt} />
             <div className="img-container">
                 <Image src={props.frontmatter.image} alt="blog-image" height={500} width={1000} priority />
             </div>        
@@ -16,6 +20,7 @@ const SingleBlog = (props) => {
                     <p>{props.frontmatter.date}</p>
                     <ReactMarkdown>{props.markdownBody}</ReactMarkdown>
                 </div>
+                <PrevNext prev={props.pref} next={props.next} />
             </div>
         </Layout>
     )
@@ -25,20 +30,9 @@ export default SingleBlog
 
 
 export async function getStaticPaths() {
-    const blogSlugs = ((context) => {
-        const keys = context.keys()
+    const {orderedBlogs} = await getAllBlogs()
 
-        const data = keys.map((key, index) => {
-            let slug = key.replace(/^.*[\\\/]/, '').slice(0, -3)
-            
-            return slug
-        })
-
-        return data
-
-    })(require.context('../../data', true, /\.md$/))
-
-    const paths = blogSlugs.map((blogSlug) => `/blog/${blogSlug}`)
+    const paths = orderedBlogs.map((orderedBlog) => `/blog/${orderedBlog.slug}`)
 
     //console.log(paths) // 出力=> ['/blog/fifth-blog','/blog/first-blog','/blog/fourth-blog','/blog/second-blog','/blog/sixth-blog','/blog/third-blog']
 
@@ -50,16 +44,26 @@ export async function getStaticPaths() {
 
 
 export async function getStaticProps(context) {
-    const {slug} = context.params
-    const data = await import(`../../data/${slug}.md`) // 任意のパス（のMDファイル）一つだけを読み込む.
-    const singleDocument = matter(data.default) // gray-matterでYAML解析をしてMDファイルのデータをsingleDocumentに格納.'default'は何なのか不明.
+    const { singleDocument } = await getSingleBlog(context)
 
-    //console.log(singleDocument) // 出力=> {content:'\r\nこれは一つ目の記事です',data: {id: '1',title: 'ひとつ目の記事',data: '2021--03-01',…},…}
+    // 前後の記事へのクリッカブル矢印を追加するためのコード
+    const { orderedBlogs } = await getAllBlogs()
+    const prev = orderedBlogs.filter(orderedBlog => orderedBlog.frontmatter.id === singleDocument.data.id - 1)
+    const next = orderedBlogs.filter(orderedBlog => orderedBlog.frontmatter.id === singleDocument.data.id + 1)
+    // ここまで
+    console.log('prev')
+    console.log(prev) //出力：[ {frontmatter: {id: 1,uid: 1,title: '1つ目の記事',date: '2021-03-01',image:・・・・}, slug: 'first-blog'}]
+    console.log('next') 
+    console.log(next) //出力：[{frontmatter: {id: 3,uid: 3,title: '3つ目の記事',date: '2021-03-03',image:・・・・slug: 'third-blog'}]
+
+
 
     return {
         props: {
             frontmatter: singleDocument.data, // frontmatter部分.
             markdownBody: singleDocument.content, // content部分（frontmatterの下部に書かれた文章）
+            pref: prev,
+            next: next,
         }
     }
 }

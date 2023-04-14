@@ -1,12 +1,16 @@
-import matter from 'gray-matter'
+//import matter from 'gray-matter'
 import Link from 'next/link'
 import Image from 'next/image'
 import Layout from '../components/layout'
+import { getAllBlogs, blogsPerPage } from '../utils/mdQueries'
+import Pagination from '../components/pagination'
+import Seo from '../components/seo'
 
 const Blog = (props) => {
     //console.log(props)
     return (
         <Layout>
+            <Seo title="ブログ" description="これはブログページです" />
             <div className="wrapper">
                 <div className="container">
                     <h1>Blog</h1>
@@ -24,6 +28,7 @@ const Blog = (props) => {
                         </div>           
                     )}
                 </div>
+                <Pagination numberPages={props.numberPages} />
             </div>
         </Layout>
     )
@@ -31,34 +36,14 @@ const Blog = (props) => {
 export default Blog
 
 export async function getStaticProps() {
-    const blogs =((context) => {
-        const keys = context.keys() // console.log(keys) => ['./fifth-blog.md','./first-blog.md','./fourth-blog.md',…]が出力. マークダウンファイルのファイル名が入ってる.
-        const values = keys.map(context) // console.log(values) => ６つの"Object [Module] { default: [Getter] }"が出力. マークダウンデータが入ってる.
+    const { orderedBlogs, numberPages } = await getAllBlogs()
 
-        const data = keys.map((key, index) => {
-            let slug = key.replace(/^.*[\/]/, '').slice(0, -3) //slugを生成.例=>./fourth-blog.mdをfourth-blogにしている
-            const value = values[index]
-            const document = matter(value.default)
-                return {
-                    frontmatter: document.data,
-                    slug: slug
-                }
-        })
-        
-        return data
-
-    })(require.context('../data', true, /\.md$/))
-
-    //console.log(blogs)
-
-    // 降順に記事をソート
-    const orderedBlogs = blogs.sort((a,b) => {
-        return b.frontmatter.id - a.frontmatter.id
-    })
+    const limitedBlogs = orderedBlogs.slice(0, blogsPerPage) // 6つあるorderedBlogsをslice(0, 5)で５つだけ取り出す.
 
     return {
         props: {
-                blogs:orderedBlogs
+                blogs:limitedBlogs,
+                numberPages: numberPages //"mdQueries.js"よりnumberPagesは２
             },
     }
 }
